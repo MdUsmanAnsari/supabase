@@ -30,14 +30,15 @@ import {
   PopoverContent_Shadcn_,
   PopoverTrigger_Shadcn_,
   Popover_Shadcn_,
-  TooltipContent_Shadcn_,
-  TooltipTrigger_Shadcn_,
-  Tooltip_Shadcn_,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   cn,
 } from 'ui'
 import ConfirmModal from 'ui-patterns/Dialogs/ConfirmDialog'
 import ConfirmationModal from 'ui-patterns/Dialogs/ConfirmationModal'
 import { RoleImpersonationPopover } from '../RoleImpersonationSelector'
+import ViewEntityAutofixSecurityModal from './ViewEntityAutofixSecurityModal'
 
 export interface GridHeaderActionsProps {
   table: Entity
@@ -70,10 +71,10 @@ const GridHeaderActions = ({ table }: GridHeaderActionsProps) => {
     },
   })
 
-  const [showEnableRealtime, setShowEnableRealtime] = useState(false)
   const [open, setOpen] = useState(false)
+  const [showEnableRealtime, setShowEnableRealtime] = useState(false)
   const [rlsConfirmModalOpen, setRlsConfirmModalOpen] = useState(false)
-
+  const [isAutofixViewSecurityModalOpen, setIsAutofixViewSecurityModalOpen] = useState(false)
   const state = useTrackedState()
   const { selectedRows } = state
   const showHeaderActions = selectedRows.size === 0
@@ -174,18 +175,18 @@ const GridHeaderActions = ({ table }: GridHeaderActionsProps) => {
       {showHeaderActions && (
         <div className="flex items-center gap-x-2">
           {isReadOnly && (
-            <Tooltip_Shadcn_>
-              <TooltipTrigger_Shadcn_ asChild>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <div className="border border-strong rounded bg-overlay-hover px-3 py-1 text-xs">
                   Viewing as read-only
                 </div>
-              </TooltipTrigger_Shadcn_>
-              <TooltipContent_Shadcn_ side="bottom">
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
                 You need additional permissions to manage your project's data
-              </TooltipContent_Shadcn_>
-            </Tooltip_Shadcn_>
+              </TooltipContent>
+            </Tooltip>
           )}
-          {isTable ? (
+          {isTable && !isLocked ? (
             table.rls_enabled ? (
               <>
                 {policies.length < 1 && !isLocked ? (
@@ -299,7 +300,15 @@ const GridHeaderActions = ({ table }: GridHeaderActionsProps) => {
                     APIs.
                   </p>
 
-                  <div className="mt-2">
+                  <div className="mt-2 flex items-center gap-2">
+                    <Button
+                      type="secondary"
+                      onClick={() => {
+                        setIsAutofixViewSecurityModalOpen(true)
+                      }}
+                    >
+                      Autofix
+                    </Button>
                     <Button type="default" asChild>
                       <Link
                         target="_blank"
@@ -371,7 +380,7 @@ const GridHeaderActions = ({ table }: GridHeaderActionsProps) => {
                     <Button type="default" asChild>
                       <Link
                         target="_blank"
-                        href="https://github.com/orgs/supabase/discussions/21647"
+                        href="https://supabase.com/docs/guides/database/extensions/wrappers/overview#security"
                       >
                         Learn more
                       </Link>
@@ -424,6 +433,13 @@ const GridHeaderActions = ({ table }: GridHeaderActionsProps) => {
           )}
         </div>
       </ConfirmationModal>
+
+      <ViewEntityAutofixSecurityModal
+        table={table}
+        isAutofixViewSecurityModalOpen={isAutofixViewSecurityModalOpen}
+        setIsAutofixViewSecurityModalOpen={setIsAutofixViewSecurityModalOpen}
+      />
+
       {isTable && (
         <ConfirmModal
           danger={table.rls_enabled}

@@ -13,7 +13,9 @@ import { toast } from 'sonner'
 import { useParams } from 'common'
 import { RoleImpersonationPopover } from 'components/interfaces/RoleImpersonationSelector'
 import DatabaseSelector from 'components/ui/DatabaseSelector'
+import { useSendEventMutation } from 'data/telemetry/send-event-mutation'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
+import { useSelectedOrganization } from 'hooks/misc/useSelectedOrganization'
 import { IS_PLATFORM, LOCAL_STORAGE_KEYS } from 'lib/constants'
 import { detectOS } from 'lib/helpers'
 import { useSqlEditorV2StateSnapshot } from 'state/sql-editor-v2'
@@ -24,9 +26,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  TooltipContent_Shadcn_,
-  TooltipTrigger_Shadcn_,
-  Tooltip_Shadcn_,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   cn,
 } from 'ui'
 import SavingIndicator from './SavingIndicator'
@@ -51,6 +53,9 @@ const UtilityActions = ({
   const os = detectOS()
   const { ref } = useParams()
   const snapV2 = useSqlEditorV2StateSnapshot()
+  const org = useSelectedOrganization()
+
+  const { mutate: sendEvent } = useSendEventMutation()
 
   const [isAiOpen] = useLocalStorageQuery(LOCAL_STORAGE_KEYS.SQL_EDITOR_AI_OPEN, true)
   const [intellisenseEnabled, setIntellisenseEnabled] = useLocalStorageQuery(
@@ -143,8 +148,8 @@ const UtilityActions = ({
         </DropdownMenu>
 
         {IS_PLATFORM && (
-          <Tooltip_Shadcn_>
-            <TooltipTrigger_Shadcn_ asChild>
+          <Tooltip>
+            <TooltipTrigger asChild>
               {isFavorite ? (
                 <Button
                   type="text"
@@ -162,24 +167,24 @@ const UtilityActions = ({
                   icon={<Heart className="fill-none stroke-foreground-light" />}
                 />
               )}
-            </TooltipTrigger_Shadcn_>
-            <TooltipContent_Shadcn_ side="bottom">
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
               {isFavorite ? 'Remove from' : 'Add to'} favorites
-            </TooltipContent_Shadcn_>
-          </Tooltip_Shadcn_>
+            </TooltipContent>
+          </Tooltip>
         )}
 
-        <Tooltip_Shadcn_>
-          <TooltipTrigger_Shadcn_ asChild>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button
               type="text"
               onClick={prettifyQuery}
               className="px-1"
               icon={<AlignLeft strokeWidth={2} className="text-foreground-light" />}
             />
-          </TooltipTrigger_Shadcn_>
-          <TooltipContent_Shadcn_ side="bottom">Prettify SQL</TooltipContent_Shadcn_>
-        </Tooltip_Shadcn_>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Prettify SQL</TooltipContent>
+        </Tooltip>
       </div>
 
       <div className="flex items-center justify-between gap-x-2">
@@ -191,7 +196,7 @@ const UtilityActions = ({
           />
           <RoleImpersonationPopover serviceRoleLabel="postgres" variant="connected-on-both" />
           <Button
-            onClick={() => executeQuery()}
+            onClick={executeQuery}
             disabled={isDisabled || isExecuting}
             type="primary"
             size="tiny"
